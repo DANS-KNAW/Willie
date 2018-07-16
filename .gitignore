@@ -1,3 +1,9 @@
-*.class
+/.idea/workspace.xml
+/bin
+/build
+/war
+
+
+
 
 WebContent/build.txt
