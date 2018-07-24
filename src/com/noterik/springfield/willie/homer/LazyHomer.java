@@ -407,8 +407,8 @@ public class LazyHomer implements MargeObserver {
 	/**
 	 * Initializes logger
 	 */
-    private void initLogger() {    	 
-    	System.out.println("Initializing logging.");
+    private void initLogger() {
+			System.out.println("Willie: initializing logging. Current logger repo = " + LogManager.getLoggerRepository());
     	
     	// get logging path
     	String logPath = LazyHomer.getRootPath().substring(0,LazyHomer.getRootPath().indexOf("webapps"));
@@ -437,6 +437,7 @@ public class LazyHomer implements MargeObserver {
 		LOG.info("logging level: " + logLevel);
 		
 		LOG.info("Initializing logging done.");
+			System.out.println("Willie works with logger repository: " + LogManager.getLoggerRepository());
     }
     
     private static void setLogLevel(String level) {
