@@ -36,7 +36,7 @@ import com.noterik.springfield.willie.tools.TFHelper;
  */
 public class TFactory {
 	/** The TFactory's log4j Logger */
-	private static final Logger LOG = Logger.getLogger(TFactory.class);
+	private static final Logger log = Logger.getLogger(TFactory.class);
 	
 	/** Level for logging command */
 	private static final Level COMMAND = new Level(Integer.MAX_VALUE, "COMMAND", Integer.MAX_VALUE) {
@@ -93,7 +93,7 @@ public class TFactory {
 		String rawUri = job.getProperty("referid");
 		
 		// send PUT call
-		LOG.debug("uri: " + rawUri + "/properties/reencode" );
+		log.debug("uri: " + rawUri + "/properties/reencode" );
 		ServiceInterface smithers = ServiceManager.getService("smithers");
 		if (smithers==null) return;
 		smithers.put(rawUri + "/properties/reencode", "false", "text/xml");
@@ -103,7 +103,7 @@ public class TFactory {
 	 * Transcoding of a job using the parameters sent in the Job instance
 	 */
 	public boolean transcode(Job job){
-		LOG.info("Transcode job("+job.getId()+")");
+		log.info("Transcode job("+job.getId()+")");
 		
 		// check job
 		String mount = job.getProperty("mount");
@@ -112,7 +112,7 @@ public class TFactory {
 		String abitrate = job.getProperty("wantedbitrate");
 
 		if(mount==null || extension==null || referid==null || abitrate==null) {
-			LOG.error("incorrect parameters passed");
+			log.error("incorrect parameters passed");
 			job.setError("Transcoding Failed", "incorrect parameters passed");
 			return false;
 		}
@@ -127,19 +127,19 @@ public class TFactory {
 			String streamPath = TFHelper.getPathOfStream(streamname[0]);
 			
 			// check stream path
-			LOG.debug("stream path is: " + streamPath);
+			log.debug("stream path is: " + streamPath);
 			if(streamPath==null) {
-				LOG.error("Transcoding failed, mount was incorrectly set");
+				log.error("Transcoding failed, mount was incorrectly set");
 				job.setError("Transcoding failed", "mount was incorrectly set");
 				return false;
 			}
 			
 			// get input
 			String path = job.getInputURI();
-			//LOG.debug("original: " + path);
+			//log.debug("original: " + path);
 			
 			if(!local) {
-				//LOG.debug("file is REMOTE");
+				//log.debug("file is REMOTE");
 				// get file if not local
 				outputDir = tempPath +File.separator +job.getId()+File.separator;
 				if(!(new File(outputDir)).exists()){
@@ -166,18 +166,18 @@ public class TFactory {
 			// custom batch file 
 			if (job.getProperty("batchfile") != null) {
 				String batchfile = job.getProperty("batchfile")+batchFilesExtension;
-				LOG.debug("transcode using batch file "+batchfile);
+				log.debug("transcode using batch file "+batchfile);
 			
 				String originalBitrate = job.getOriginalProperty("audiobitrate") != null ? job.getOriginalProperty("audiobitrate") : "0";
 				String originalDuration = job.getOriginalProperty("duration") != null ? job.getOriginalProperty("duration") : "1";
 				String originalExtension = job.getOriginalProperty("extension") != null ? job.getOriginalProperty("extension") : "unknown";
 				
 				String[] cmdArray = new String[] {batchFilesPath+File.separator+batchfile, ffmpegPath+File.separator, inputFile, job.getProperty("wantedbitrate"), outputDir, job.getProperty("extension"), tempPath, job.getId(), originalBitrate, originalDuration, originalExtension};
-				LOG.debug("command: "+batchFilesPath+File.separator+batchfile+" "+ffmpegPath+File.separator+" "+inputFile+" "+ job.getProperty("wantedbitrate")+" "+outputDir+" "+job.getProperty("extension")+" "+tempPath+" "+job.getId()+" "+originalBitrate+" "+originalDuration+" "+originalExtension);
+				log.debug("command: "+batchFilesPath+File.separator+batchfile+" "+ffmpegPath+File.separator+" "+inputFile+" "+ job.getProperty("wantedbitrate")+" "+outputDir+" "+job.getProperty("extension")+" "+tempPath+" "+job.getId()+" "+originalBitrate+" "+originalDuration+" "+originalExtension);
 				
 				File bFile = new File(batchFilesPath+File.separator+batchfile);
 				if (!bFile.exists()) {
-					System.out.println("Batch file not found "+batchFilesPath+File.separator+batchfile);
+					log.debug("Batch file not found "+batchFilesPath+File.separator+batchfile);
 					job.setError("Error", "Transcoding Failed, batch file not found");
 					return false;
 				}
@@ -189,7 +189,7 @@ public class TFactory {
 					if (job.getOutputFilename() != null) {
 						new File(outputDir + "raw." + job.getProperty("extension")).renameTo(new File(outputDir+job.getOutputFilename()));
 					}					
-					LOG.debug("Transcoding finished.");
+					log.debug("Transcoding finished.");
 				}else{
 					job.setError("Error", "Transcoding Failed");
 					return false;
@@ -197,11 +197,11 @@ public class TFactory {
 			}
 		}catch(Exception e) {
 			job.setError("Transcoding failed","");
-			LOG.error("Transcoding failed",e);
+			log.error("Transcoding failed",e);
 			return false;
 		}
 		
-		LOG.debug("putting transcoded file on other streams");
+		log.debug("putting transcoded file on other streams");
 		
 		// ftp files to other streams, and if not local to all streams
 		String[] streams = TFHelper.getStreams(job);
@@ -214,12 +214,12 @@ public class TFactory {
 			String rFolder = mp.getPath()+job.getProperty("referid");
 			String lFolder = outputDir;
 			String filename = "raw."+extension;		
-			LOG.debug("sending to server: "+server+", username: "+username+", password: "+password+", rFolder: "+rFolder+", lFolder: "+lFolder+", filename: "+filename);
+			log.debug("sending to server: "+server+", username: "+username+", password: "+password+", rFolder: "+rFolder+", lFolder: "+lFolder+", filename: "+filename);
 			
 			// send
 			boolean ok = FtpHelper.commonsSendFile(server, username, password, rFolder, lFolder, filename);
 			if(!ok) {
-				LOG.error("Could not send file to ftp. " + server + " -- " + job.getProperty("referid"));
+				log.error("Could not send file to ftp. " + server + " -- " + job.getProperty("referid"));
 			}
 		}
 		
@@ -241,7 +241,7 @@ public class TFactory {
 		
 		// everything went fine
 		job.setStatus("Progress", "Done");
-		LOG.info("Transcode done job("+job.getId()+")");
+		log.info("Transcode done job("+job.getId()+")");
 		return true;
 	}
 	
@@ -261,15 +261,15 @@ public class TFactory {
 		try{
 			created = new File(localPath).mkdirs();
 		}catch(SecurityException e){
-			LOG.error("security exception while creating local path",e);
+			log.error("security exception while creating local path",e);
 		}
-		LOG.debug("folder " + localPath + " was created: " + created);
+		log.debug("folder " + localPath + " was created: " + created);
 		*/
 		
 		// get original properties
 		String extension="", mount="", original = job.getInputURI();
 		if(original==null) {
-			LOG.error("Could not get original with ftp, orginal not set.");
+			log.error("Could not get original with ftp, orginal not set.");
 			return false;
 		}		
 		
@@ -296,13 +296,13 @@ public class TFactory {
 		String lFolder = localPath+File.separator+job.getId();
 		String rFilename = "raw."+extension;
 		String lFilename = "input."+extension;
-		LOG.debug("server: "+server+", username: "+username+", password: "+password+", rFolder: "+rFolder+", lFolder: "+lFolder+", lFilename: "+lFilename+", rFilename:"+rFilename);
+		log.debug("server: "+server+", username: "+username+", password: "+password+", rFolder: "+rFolder+", lFolder: "+lFolder+", lFilename: "+lFilename+", rFilename:"+rFilename);
 		
 		// get file using ftp
 		boolean success = FtpHelper.commonsGetFile(server, username, password, rFolder, lFolder, rFilename, lFilename);
 		//boolean success = FtpHelper.commonsGetFile(server, username, password, rFolder, lFolder, filename);
 		
-		LOG.debug("getting file was successful: " + success);
+		log.debug("getting file was successful: " + success);
 		
 		// return successful
 		return success;
@@ -326,7 +326,7 @@ public class TFactory {
 		try {
 			doc = DocumentHelper.parseText(response);
 		} catch (DocumentException e) {
-			LOG.error("Could not parse respopnse from smithers",e);
+			log.error("Could not parse respopnse from smithers",e);
 		}		
 		return doc;
 	}
@@ -428,7 +428,7 @@ public class TFactory {
 	 * @param line
 	 */
 	private void parseOutput(String line){
-		LOG.debug(line);
+		log.debug(line);
 		int di = line.indexOf("Duration: ");
 		int fi = line.indexOf(" time=");
 		int tfc = line.indexOf("Total ffmpeg calls:");
@@ -438,7 +438,7 @@ public class TFactory {
 			if(di != -1){
 				//String ds = line.substring(di + "Duration: ".length(), line.indexOf("."));
 				String ds = line.substring(di + "Duration: ".length(), line.indexOf(",",di));
-				LOG.debug("DURATION: " + ds);
+				log.debug("DURATION: " + ds);
 				String hs = ds.substring(0, ds.indexOf(":"));
 				ds = ds.substring(ds.indexOf(":") + 1, ds.length());
 				String ms = ds.substring(0, ds.indexOf(":"));
@@ -446,17 +446,17 @@ public class TFactory {
 				String ss = ds.substring(0, ds.indexOf("."));
 				ds = ds.substring(ds.indexOf(".") +1, ds.length());
 				String dms = ds.substring(0, ds.length());
-				LOG.debug("H: " + hs + " M: " + ms + " S: " + ss +" MS: "+ dms);
+				log.debug("H: " + hs + " M: " + ms + " S: " + ss +" MS: "+ dms);
 				short h = new Short(hs).shortValue();
 				short m = new Short(ms).shortValue();
 				short s = new Short(ss).shortValue();
 				short mms = new Short(dms).shortValue();
 				curDuration = (h * 60 * 60 * 1000) + (m * 60 * 1000) + (s *1000) + (mms * 10);
-				LOG.debug("CURRENT DURATION: " + curDuration);
+				log.debug("CURRENT DURATION: " + curDuration);
 			} else if(fi != -1){
 				String ts = line.substring(fi + " time=".length());
 				ts = ts.substring(0, ts.indexOf(" "));
-				LOG.debug("TIME: " + ts);
+				log.debug("TIME: " + ts);
 				if (ts.indexOf(":") == -1) {
 					String ss = ts.substring(0, ts.indexOf("."));
 					String dss = ts.substring(ts.indexOf(".") + 1);
@@ -483,13 +483,13 @@ public class TFactory {
 				}
 			} else if (tfc != -1) {
 				String tfcs = line.substring(tfc + "Total ffmpeg calls:".length());
-				LOG.debug("TOTAL FFMPEG CALLS: "+tfcs);
+				log.debug("TOTAL FFMPEG CALLS: "+tfcs);
 				if (tfcs != null) {
 					totalFfmpegCalls = Integer.parseInt(tfcs);
 				}
 			} else if (cfc != -1) {
 				String cfcs = line.substring(cfc + "Current ffmpeg call:".length());
-				LOG.debug("CURRENT FFMPEG CALL: "+cfcs);
+				log.debug("CURRENT FFMPEG CALL: "+cfcs);
 				if (cfcs != null) {
 					currentFfmpegCall = Integer.parseInt(cfcs);
 				}
@@ -501,7 +501,7 @@ public class TFactory {
 			    if (totalFfmpegCalls > 1) {
 				progr = progr / (double) totalFfmpegCalls;
 				progr += ((double)(currentFfmpegCall-1)/(double)totalFfmpegCalls)*100;
-				LOG.debug("Total progress: "+progr);
+				log.debug("Total progress: "+progr);
 			    }			    
 			    
 			    long currentTime = System.currentTimeMillis();
@@ -512,7 +512,7 @@ public class TFactory {
 			    }
 			}
 		} catch(Exception e) {
-			LOG.error("Could not parse ffmpeg output",e);
+			log.error("Could not parse ffmpeg output",e);
 			_job.setError("Error", "Transcoding Failed, corrupted audio");
 		}
 	}
@@ -526,10 +526,10 @@ public class TFactory {
 		if(curDuration > 0 && time > 0){
 			long currentTime = System.currentTimeMillis();
 			long now = time / (curDuration / 100);
-			LOG.debug(now);
+			log.debug(now);
 			now = now / totalFfmpegCalls;
 			now += ((double)(currentFfmpegCall-1)/(double)totalFfmpegCalls)*100;
-			LOG.debug("Total progress: "+now);
+			log.debug("Total progress: "+now);
 			// only log every so many seconds
 			if( (currentTime - statusLastUpdatedTime) > STATUS_UPDATE_TIME ) {
 				_job.setStatus("Progress", now + "");

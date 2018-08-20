@@ -11,16 +11,11 @@ import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springfield.fs.FSXMLBuilder;
 import org.springfield.mojo.ftp.URIParser;
 import org.springfield.mojo.interfaces.ServiceInterface;
 import org.springfield.mojo.interfaces.ServiceManager;
-
-import com.noterik.bart.marge.model.Service;
-import com.noterik.bart.marge.server.MargeServer;
-import com.noterik.springfield.willie.homer.LazyHomer;
 
 /**
  * Container for jobs
@@ -36,7 +31,7 @@ import com.noterik.springfield.willie.homer.LazyHomer;
  */
 public class Job {
 	/** the Job's log4j logger */
-	private static final Logger LOG = Logger.getLogger(Job.class);
+	private static final Logger log = Logger.getLogger(Job.class);
 	
 	/**
 	 * uri
@@ -158,7 +153,7 @@ public class Job {
 	 * Parse the XML of the parent URI to determine original and input audio
 	 */
 	private void parseParentXML() {
-		LOG.debug("parsing parent XML for job "+uri);
+		log.debug("parsing parent XML for job "+uri);
 			
 		// get some variables
 		String referid = getProperty("referid");
@@ -166,13 +161,13 @@ public class Job {
 		String useraw = getProperty("useraw");
 		
 		// get all the raw audios
-		LOG.debug("sending get request to: " + parentURI);
+		log.debug("sending get request to: " + parentURI);
 		
 		ServiceInterface smithers = ServiceManager.getService("smithers");
 		if (smithers==null) return;
 		String response = smithers.get(parentURI, null, null);
 
-		LOG.debug("response was: " + response);
+		log.debug("response was: " + response);
 		
 		// parse document
 		try {
@@ -231,7 +226,7 @@ public class Job {
 					outputURI = filename.substring(0, filename.lastIndexOf("/")+1);
 					outputFilename = filename.substring(filename.lastIndexOf("/")+1);
 				} else {
-					LOG.debug("could not find original");
+					log.debug("could not find original");
 				}
 			}
 			
@@ -257,11 +252,11 @@ public class Job {
 			}
 		} catch(Exception e) {
 			validJob = false;
-			LOG.error("",e);
+			log.error("",e);
 		}
 		
-		System.out.println("Result of parsing parent - original: "+original+", originalFilename: "+originalFilename+", inputURI: "+inputURI+", inputFilename: "+inputFilename);
-		LOG.debug("Result of parsing parent - original: "+original+", originalFilename: "+originalFilename+", inputURI: "+inputURI+", inputFilename: "+inputFilename);
+		log.debug("Result of parsing parent - original: "+original+", originalFilename: "+originalFilename+", inputURI: "+inputURI+", inputFilename: "+inputFilename);
+		log.debug("Result of parsing parent - original: "+original+", originalFilename: "+originalFilename+", inputURI: "+inputURI+", inputFilename: "+inputFilename);
 
 	}
 
@@ -299,8 +294,8 @@ public class Job {
 		smithers.put(uri + "/status/1/properties",statusXml,"text/xml");
 		
 		// debug
-		LOG.debug("Settings status for " + uri + "/status/1/properties");
-		LOG.debug(statusXml);
+		log.debug("Settings status for " + uri + "/status/1/properties");
+		log.debug(statusXml);
 		
 	}
 
@@ -325,8 +320,8 @@ public class Job {
 		String response = smithers.put(uri + "/error/1/properties",errorXml,"text/xml");
 		
 		// debug
-		LOG.debug("Settings status for " + uri + "/error/1/properties");
-		LOG.debug(errorXml);
+		log.debug("Settings status for " + uri + "/error/1/properties");
+		log.debug(errorXml);
 	}
 
 	/**
@@ -418,12 +413,12 @@ public class Job {
 		if (smithers==null) return "";
 		String response = smithers.get(uri + "/status/1/properties/"+property,null,null);
 
-		LOG.debug("Get status property "+property+" response "+response);
+		log.debug("Get status property "+property+" response "+response);
 		try { 
 			Document xml = DocumentHelper.parseText(response);			
 			return xml.selectSingleNode(property) == null ? null : xml.selectSingleNode(property).getText();
 		} catch (DocumentException e) {
-			LOG.error("could not parse response "+response);
+			log.error("could not parse response "+response);
 		}
 		return "";
 	}
@@ -453,7 +448,7 @@ public class Job {
 			}
 
 		} catch (DocumentException e) {
-			LOG.error("could not parse response "+response);
+			log.error("could not parse response "+response);
 		}
 		return results;
 	}
@@ -466,8 +461,8 @@ public class Job {
 		smithers.put(uri + "/status/1/properties/"+property, value, "text/xml");
 		
 		// debug
-		LOG.debug("Settings status for " + uri + "/status/1/properties/"+property);
-		LOG.debug(value);
+		log.debug("Settings status for " + uri + "/status/1/properties/"+property);
+		log.debug(value);
 	}
 	
 	public boolean isValidJob() {

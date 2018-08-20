@@ -23,7 +23,7 @@ import org.springfield.mojo.interfaces.ServiceManager;
 import com.noterik.springfield.willie.*;
 
 public class LazyHomer implements MargeObserver {	
-	private static Logger LOG = Logger.getLogger(LazyHomer.class);
+	private static Logger log = Logger.getLogger(LazyHomer.class);
 
 	/** Noterik package root */
 	public static final String PACKAGE_ROOT = "com.noterik.springfield.willie";
@@ -55,17 +55,17 @@ public class LazyHomer implements MargeObserver {
 		rootPath = r;
 		ins = this;
 		retryCounter = 0;
-		initConfig();
 		initLogger();
+		initConfig();
+
 		
 		try{
 			InetAddress mip=InetAddress.getLocalHost();
 			myip = ""+mip.getHostAddress();
 		}catch (Exception e){
-			LOG.error("Exception ="+e.getMessage());
+			log.error("Exception ="+e.getMessage());
 		}
-		LOG.info("Willie init service name = willie on ipnumber = "+myip);
-		System.out.println("Willie init service name = willie on ipnumber = "+myip+" on marge port "+port);
+		log.info("Willie init service name = willie on ipnumber = "+myip);
 		marge = new LazyMarge();
 		
 		// lets watch for changes in the service nodes in smithers
@@ -77,12 +77,12 @@ public class LazyHomer implements MargeObserver {
 	public static void addSmithers(String ipnumber,String port,String mport,String role) {
 		int oldsize = smithers.size();
 		if (!(""+LazyHomer.getPort()).equals(mport)) {
-			System.out.println("WILLIE EXTREME WARNING CLUSTER COLLISION ("+LazyHomer.getPort()+") "+ipnumber+":"+port+":"+mport);
+			log.debug("WILLIE EXTREME WARNING CLUSTER COLLISION ("+LazyHomer.getPort()+") "+ipnumber+":"+port+":"+mport);
 			return;
 		}
 		
 		if (!role.equals(getRole())) {
-			System.out.println("nelson : Ignored this smithers ("+ipnumber+") its "+role+" and not "+getRole()+" like us");
+			log.debug("Ignored this smithers ("+ipnumber+") its "+role+" and not "+getRole()+" like us");
 			return;
 		}
 		
@@ -94,12 +94,11 @@ public class LazyHomer implements MargeObserver {
 			sp.setPort(port);
 			sp.setAlive(true); // since talking its alive 
 			noreply = false; // stop asking (minimum of 60 sec, delayed)
-			LOG.info("Willie found smithers at = "+ipnumber+" port="+port+" multicast="+mport);
-			System.out.println("Willie found smithers at = "+ipnumber+" port="+port+" multicast="+mport);
+			log.info("Willie found smithers at = "+ipnumber+" port="+port+" multicast="+mport);
 		} else {
 			if (!sp.isAlive()) {
 				sp.setAlive(true); // since talking its alive again !
-				LOG.info("willie recovered smithers at = "+ipnumber);
+				log.info("willie recovered smithers at = "+ipnumber);
 			}
 		}
 		
@@ -112,7 +111,7 @@ public class LazyHomer implements MargeObserver {
 			if (mp!=null && mp.getStatus().equals("on")) {
 				if (serv==null) serv = new WillieServer();
 				if (!serv.isRunning()) {
-					LOG.info("This Willie will be started (on startup)="+rootPath);
+					log.info("This Willie will be started (on startup)="+rootPath);
 					serv.setRootPath(rootPath);
 					serv.init();
 				}
@@ -120,7 +119,7 @@ public class LazyHomer implements MargeObserver {
 				if (serv!=null && serv.isRunning()) {
 					serv.destroy();
 				} else {
-					LOG.info("This Willie is not turned on, use smithers todo this for ip "+myip);
+					log.info("This Willie is not turned on, use smithers todo this for ip "+myip);
 				}
 			}
 		}
@@ -194,7 +193,7 @@ public class LazyHomer implements MargeObserver {
 						foundmynode = true;
 						retryCounter = 0;
 						if (name.equals("unknown")) {
-							System.out.println("This willie is not verified change its name, use smithers todo this for ip "+myip);
+							log.debug("This willie is not verified change its name, use smithers todo this for ip "+myip);
 						} else {
 							// so we have a name (verified) return true
 							iamok = true;
@@ -207,12 +206,12 @@ public class LazyHomer implements MargeObserver {
 					//retry 30 times (= 5 min) to handle temp smithers downtime (eg daily restarts)
 					retryCounter++;
 				} else {
-					LOG.info("LazyHomer : Creating my processing node "+LazyHomer.getSmithersUrl()  + "/domain/internal/service/willie/properties");
+					log.info("LazyHomer : Creating my processing node "+LazyHomer.getSmithersUrl()  + "/domain/internal/service/willie/properties");
 					String os = "unknown"; // we assume windows ?
 					try{
 						  os = System.getProperty("os.name");
 					} catch (Exception e){
-						System.out.println("LazyHomer : "+e.getMessage());
+						log.debug("LazyHomer : "+e.getMessage());
 					}
 					
 					String newbody = "<fsxml><properties>";
@@ -260,7 +259,7 @@ public class LazyHomer implements MargeObserver {
 				}
 			}
 		} catch (Exception e) {
-			LOG.info("LazyHomer exception doc");
+			log.info("LazyHomer exception doc");
 			e.printStackTrace();
 		}
 		return iamok;
@@ -274,7 +273,7 @@ public class LazyHomer implements MargeObserver {
 	}
 	
 	private void initConfig() {
-		System.out.println("Willie: initializing configuration.");
+		log.debug("initializing configuration.");
 		
 		// properties
 		Properties props = new Properties();
@@ -287,13 +286,13 @@ public class LazyHomer implements MargeObserver {
 		
 		// load from file
 		try {
-			System.out.println("INFO: Loading config file from load : "+configfilename);
+			log.debug("INFO: Loading config file from load : "+configfilename);
 			File file = new File(configfilename);
 
 			if (file.exists()) {
 				props.loadFromXML(new BufferedInputStream(new FileInputStream(file)));
 			} else { 
-				System.out.println("FATAL: Could not load config "+configfilename);
+				log.debug("FATAL: Could not load config "+configfilename);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -307,7 +306,7 @@ public class LazyHomer implements MargeObserver {
 		smithers_port = Integer.parseInt(props.getProperty("default-smithers-port"));
 		role = props.getProperty("role");
 		if (role==null) role = "production";
-		System.out.println("SERVER ROLE="+role);
+		log.debug("SERVER ROLE="+role);
 	}
 	
 	public static String getRole() {
@@ -323,7 +322,7 @@ public class LazyHomer implements MargeObserver {
 			s.send(pack,(byte)ttl);
 			s.close();
 		} catch(Exception e) {
-			System.out.println("LazyHomer error "+e.getMessage());
+			log.debug("LazyHomer error "+e.getMessage());
 		}
 	}
 	
@@ -353,7 +352,7 @@ public class LazyHomer implements MargeObserver {
 			for(Iterator<SmithersProperties> iter = smithers.values().iterator(); iter.hasNext(); ) {
 				SmithersProperties sm = (SmithersProperties)iter.next();
 				if (!sm.isAlive()) {
-					LOG.info("One or more smithers down, try to recover it");
+					log.info("One or more smithers down, try to recover it");
 					LazyHomer.send("INFO","/domain/internal/service/getname");
 				}
 			}
@@ -366,17 +365,17 @@ public class LazyHomer implements MargeObserver {
 				if (mp!=null && mp.getStatus().equals("on")) {
 	
 					if (!serv.isRunning()) { 
-						LOG.info("This willie will be started");
+						log.info("This willie will be started");
 						serv.setRootPath(rootPath);
 						serv.init();
 						setLogLevel(mp.getDefaultLogLevel());
 					}
 				} else {
 					if (serv.isRunning()) {
-						LOG.info("This willie will be turned off");
+						log.info("This willie will be turned off");
 						serv.destroy();
 					} else {
-						LOG.info("This willie is not turned on, use smithers todo this for ip "+myip);
+						log.info("This willie is not turned on, use smithers todo this for ip "+myip);
 					}
 				}
 			}
@@ -415,12 +414,12 @@ public class LazyHomer implements MargeObserver {
 			if (xmlConfig.exists()) {
 				System.out.println("WILLIE: Reading logging config from XML file at " + xmlConfig);
 				DOMConfigurator.configure(xmlConfig.getAbsolutePath());
-				LOG.info("Logging configured from file: " + xmlConfig);
+				log.info("Logging configured from file: " + xmlConfig);
 			}
 			else {
 				System.out.println("WILLIE: Could not find log config at " + xmlConfig);
 			}
-			LOG.info("Initializing logging done.");
+			log.info("Initializing logging done.");
     }
     
     private static void setLogLevel(String level) {
@@ -438,7 +437,7 @@ public class LazyHomer implements MargeObserver {
 		}
 		if (logLevel.toInt()!=oldlevel.toInt()) {
 			Logger.getLogger(PACKAGE_ROOT).setLevel(logLevel);
-			LOG.info("logging level: " + logLevel);
+			log.info("logging level: " + logLevel);
 		}
 	}
 	
@@ -476,7 +475,7 @@ public class LazyHomer implements MargeObserver {
 				}
 			}
 		} catch (DocumentException e) {
-			LOG.info("LazyHomer: "+e.getMessage());
+			log.info("LazyHomer: "+e.getMessage());
 		}
 	}
 	
@@ -497,7 +496,7 @@ public class LazyHomer implements MargeObserver {
 	    public void run() {
 	     int counter = 0;
 	      while (LazyHomer.noreply || counter<10) {
-	    	if (counter>4 && LazyHomer.noreply) LOG.info("Still looking for smithers on multicast port "+port+" ("+LazyHomer.noreply+")");
+	    	if (counter>4 && LazyHomer.noreply) log.info("Still looking for smithers on multicast port "+port+" ("+LazyHomer.noreply+")");
 	    	LazyHomer.send("INFO","/domain/internal/service/getname");
 	        try {
 	          sleep(500+(counter*100));
@@ -506,7 +505,7 @@ public class LazyHomer implements MargeObserver {
 	          throw new RuntimeException(e);
 	        }
 	      }
-	      LOG.info("Stopped looking for new smithers");
+	      log.info("Stopped looking for new smithers");
 	    }
 	}
 
@@ -522,17 +521,17 @@ public class LazyHomer implements MargeObserver {
 			if (smithers==null) return result;
 			result = smithers.get(fullurl, body, contentType);
 			//result = HttpHelper.sendRequest(method, fullurl, body, contentType).toString();
-			//	System.out.println("FULLURL="+fullurl+" result="+result);
+			//	log.debug("FULLURL="+fullurl+" result="+result);
 			if (result.indexOf("<?xml")==-1) {
-				LOG.error("FAIL TYPE ONE ("+fullurl+")");
-				LOG.error("XML="+result);
+				log.error("FAIL TYPE ONE ("+fullurl+")");
+				log.error("XML="+result);
 				String b = null;
 				b.toString();
 				validresult = false;
 			}
 		} catch(Exception e) {
-			LOG.error("FAIL TYPE TWO ("+fullurl+")");
-			LOG.error("XML="+result);
+			log.error("FAIL TYPE TWO ("+fullurl+")");
+			log.error("XML="+result);
 			e.printStackTrace();
 			validresult = false;
 		}
@@ -550,24 +549,24 @@ public class LazyHomer implements MargeObserver {
 				result = smithers.get(fullurl, body, contentType);
 				//result = HttpHelper.sendRequest(method, fullurl, body, contentType).toString();
 				if (result.indexOf("<?xml")==-1) {
-					LOG.error("FAIL TYPE THREE ("+fullurl+")");
-					LOG.error("XML="+result);
+					log.error("FAIL TYPE THREE ("+fullurl+")");
+					log.error("XML="+result);
 					validresult = false;
 				}
 			} catch(Exception e) {
 				validresult = false;
-				LOG.error("FAIL TYPE FOUR ("+fullurl+")");
-				LOG.error("XML="+result);
+				log.error("FAIL TYPE FOUR ("+fullurl+")");
+				log.error("XML="+result);
 			}
 		}
 		
-		LOG.debug("VALID REQUEST RESULT ("+fullurl+") ");
+		log.debug("VALID REQUEST RESULT ("+fullurl+") ");
 		
 		return result;
 	}*/
 	
 	/*private static void getDifferentSmithers() {
-		LOG.debug("Request for new smithers");
+		log.debug("Request for new smithers");
 		// lets first find our prefered smithers.
 		WillieProperties mp = getMyWillieProperties();
 		String pref = mp.getPreferedSmithers();
@@ -586,7 +585,7 @@ public class LazyHomer implements MargeObserver {
 			// they are all down ? ok this is tricky lets wait until one comes up
 			boolean foundone = false;
 			while (!foundone) {
-				LOG.info("All smithers seem down waiting for one to recover");
+				log.info("All smithers seem down waiting for one to recover");
 				LazyHomer.send("INFO","/domain/internal/service/getname");
 				for(Iterator<SmithersProperties> iter = smithers.values().iterator(); iter.hasNext(); ) {
 					SmithersProperties sm = (SmithersProperties)iter.next();
@@ -608,9 +607,9 @@ public class LazyHomer implements MargeObserver {
 		if (winner!=selectedsmithers) {
 			LazyHomer.sendRequest("PUT", "/domain/internal/service/willie/nodes/"+myip+"/properties/activesmithers", winner.getIpNumber(), "text/xml");
 			if (selectedsmithers==null) {
-				LOG.info("changed to "+winner.getIpNumber()+" prefered="+pref);
+				log.info("changed to "+winner.getIpNumber()+" prefered="+pref);
 			} else {
-				LOG.info("changed from "+selectedsmithers.getIpNumber()+" to "+winner.getIpNumber()+" prefered="+pref);
+				log.info("changed from "+selectedsmithers.getIpNumber()+" to "+winner.getIpNumber()+" prefered="+pref);
 			}
 		}
 		selectedsmithers = winner;

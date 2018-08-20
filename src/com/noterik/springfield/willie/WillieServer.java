@@ -33,7 +33,7 @@ import com.noterik.springfield.willie.queue.dist.SimpleDecisionEngine;
  */
 public class WillieServer {
 	/** The WillieServer's log4j Logger */
-	private static Logger LOG = Logger.getLogger(WillieServer.class);
+	private static Logger log = Logger.getLogger(WillieServer.class);
 
 	/** base uri of the file system */
 	private static String DOMAIN_URI = "/domain";	
@@ -154,7 +154,7 @@ public class WillieServer {
 	 * Loads configuration file.
 	 */
 	private void initConfigurationXML() {
-		System.out.println("Initializing configuration file.");
+		log.debug("Initializing configuration file.");
 		
 		// configuration file
 		configuration = new Properties();
@@ -169,7 +169,7 @@ public class WillieServer {
 			configuration.put("batchFilesPath", mp.getBatchFilesPath());
 			configuration.put("batchFilesExtension", mp.getBatchFilesExtension());
 		} else {
-			System.out.println("Loading from configuration failed.");
+			log.debug("Loading from configuration failed.");
 		}
 	}
 
@@ -177,7 +177,7 @@ public class WillieServer {
 	 * Reads configuration to determine the decision engine to use
 	 */
 	private void initDecisionEngine() {
-		LOG.info("Initializing decesion engine.");
+		log.info("Initializing decesion engine.");
 		
 		// get class name from configuration
 		String className = configuration.getProperty("decision-engine");
@@ -186,12 +186,12 @@ public class WillieServer {
 		try {
 			Class clazz = Class.forName(className);
 			dEngine = (DecisionEngine) clazz.newInstance();
-			LOG.info("decision engine: " + dEngine.getClass().getName());
+			log.info("decision engine: " + dEngine.getClass().getName());
 		} catch (Exception e) {
-			LOG.error("Could not load class from configuration, switching to default.");
+			log.error("Could not load class from configuration, switching to default.");
 			dEngine = DEFAULT_DECISION_ENGINE;
 		}
-		LOG.info("Initializing decesion engine done.");
+		log.info("Initializing decesion engine done.");
 	}
 	
 	
@@ -211,7 +211,7 @@ public class WillieServer {
 	 * Initializes the queue manager
 	 */
 	private void initQueueManager() {
-		LOG.info("Initializing queuemanager.");
+		log.info("Initializing queuemanager.");
 		
 		// create new queue manager
 		qm = new QueueManager();
@@ -233,25 +233,25 @@ public class WillieServer {
 				qm.addDomain(id);
 			}
 		} catch(Exception e) {
-			LOG.error("Could not retrieve domains.");
+			log.error("Could not retrieve domains.");
 		}
-		LOG.info("Initializing queuemanager done.");
+		log.info("Initializing queuemanager done.");
 	}
 	
 	/**
 	 * Initializes the transcoder workers.
 	 */
 	private void initWorkers() {
-		LOG.info("Initializing workers.");
+		log.info("Initializing workers.");
 		
 		int numberOfWorkers = 1;
 		
 		try {
 			numberOfWorkers = Integer.parseInt(configuration.getProperty("number-of-workers"));
 		} catch(Exception e) {
-			System.out.println("Could not load number of worker threads from configuration, switching to default (1).");
+			log.debug("Could not load number of worker threads from configuration, switching to default (1).");
 		}		
-		LOG.info("number of workers: " + numberOfWorkers);
+		log.info("number of workers: " + numberOfWorkers);
 		
 		// create workers array
 		workers = new TranscoderWorker[numberOfWorkers];
@@ -262,7 +262,7 @@ public class WillieServer {
 			workers[i].init();
 		}
 		
-		LOG.info("Initializing workers done.");
+		log.info("Initializing workers done.");
 	}
 	
     
