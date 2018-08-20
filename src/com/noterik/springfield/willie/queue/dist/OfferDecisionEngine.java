@@ -25,7 +25,7 @@ import com.noterik.springfield.willie.tools.TFHelper;
 public class OfferDecisionEngine implements DecisionEngine {
 
 	/** The DistributedDecisionEngine's log4j Logger */
-	private static final Logger LOG = Logger.getLogger(OfferDecisionEngine.class);
+	private static final Logger log = Logger.getLogger(OfferDecisionEngine.class);
 	private String hostname = null;
 	
 	public boolean processJob(Job job) {
@@ -40,7 +40,7 @@ public class OfferDecisionEngine implements DecisionEngine {
 				// will look at the offers and pick a winner.
 						
 				// do we have access to the file ?
-				//System.out.println("LOCALFILE="+TFHelper.isLocalJob(job));
+				//log.debug("LOCALFILE="+TFHelper.isLocalJob(job));
 				if (TFHelper.isLocalJob(job)) {
 					score = score + 1000; // its a local file 
 				} else {
@@ -61,7 +61,7 @@ public class OfferDecisionEngine implements DecisionEngine {
 					} catch (Exception e) {};
 						
 				}
-				LOG.info("My offer score ="+score+"(willie count ="+LazyHomer.getNumberOfWillies()+" my pos="+LazyHomer.getMyWilliePosition()+")");
+				log.info("My offer score ="+score+"(willie count ="+LazyHomer.getNumberOfWillies()+" my pos="+LazyHomer.getMyWilliePosition()+")");
 				if (score==-1) {
 					// we refuse to make a offer on the job, so return false;
 					return false;
@@ -86,7 +86,7 @@ public class OfferDecisionEngine implements DecisionEngine {
 				}
 			}
 		} catch (InterruptedException e) {
-			LOG.error("InterruptedException",e);
+			log.error("InterruptedException",e);
 		}
 		return false;
 	}
@@ -107,7 +107,7 @@ public class OfferDecisionEngine implements DecisionEngine {
 				}
 			}
 		}
-		if (!winner.equals("unknown")) System.out.println("Winning job offer by "+winner+" with score="+maxscore);
+		if (!winner.equals("unknown")) log.debug("Winning job offer by "+winner+" with score="+maxscore);
 		return winner;
 	}
 	
@@ -116,7 +116,7 @@ public class OfferDecisionEngine implements DecisionEngine {
 		if (transcoder == null) {
 			return false;
 		}
-		LOG.debug("Job is already being processed by "+transcoder);
+		log.debug("Job is already being processed by "+transcoder);
 		return true;
 	}
 	
@@ -126,7 +126,7 @@ public class OfferDecisionEngine implements DecisionEngine {
 		if (transcoder == null) {
 			return false;
 		}
-		LOG.debug("Job is offered "+transcoder);
+		log.debug("Job is offered "+transcoder);
 		return true;
 	}
 }

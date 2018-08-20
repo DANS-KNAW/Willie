@@ -137,7 +137,7 @@ public class Queue implements Comparable<Queue> {
 				jobUri = uri + "/job/" + node.valueOf("@id");
 				
 				// add to job list
-				//System.out.println("JOB="+node.asXML());
+				//log.debug("JOB="+node.asXML());
 				Job job = new Job(jobUri,node.asXML());
 				if (job.isValidJob()) {
 					jobs.add(job);

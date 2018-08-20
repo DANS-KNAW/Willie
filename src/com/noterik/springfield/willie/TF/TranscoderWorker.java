@@ -30,7 +30,7 @@ import com.noterik.springfield.willie.queue.QueueManager;
  */
 public class TranscoderWorker implements MargeObserver {
 	/**	the TranscoderWorker's log4j logger */
-	private static final Logger LOG = Logger.getLogger(TranscoderWorker.class);
+	private static final Logger log = Logger.getLogger(TranscoderWorker.class);
 	
 	private boolean busy = false;
 	
@@ -40,7 +40,7 @@ public class TranscoderWorker implements MargeObserver {
 	private Job cJob = null;
 	
 	public void init() {
-		LOG.info("Starting worker");
+		log.info("Starting worker");
 		
 		// subscribe to changed on the queue's
 				LazyMarge.addObserver("/domain/webtv/service/willie/queue", this);
@@ -53,20 +53,20 @@ public class TranscoderWorker implements MargeObserver {
 		
 		QueueManager qm = WillieServer.instance().getQueueManager();
 		if (qm==null) {
-			LOG.info("TranscoderWorker : Queuemanager not found");
+			log.info("TranscoderWorker : Queuemanager not found");
 			busy = false;
 			return false;
 		}
 		cJob = qm.getJob();
 		if(cJob!=null) {
-			//System.out.println("TR="+cJob.getStatusProperty("trancoder"));
+			//log.debug("TR="+cJob.getStatusProperty("trancoder"));
 			if (cJob.getStatusProperty("trancoder")==null) { // no transcoder
 				
-				LOG.debug("got new job: "+cJob);
+				log.debug("got new job: "+cJob);
 
 				// transcode job
 				boolean success = transcode();
-				LOG.debug("finished transcoding successfully: "+Boolean.toString(success));
+				log.debug("finished transcoding successfully: "+Boolean.toString(success));
 			
 				// call to job finished
 				jobFinished(success);
@@ -76,10 +76,10 @@ public class TranscoderWorker implements MargeObserver {
 				busy = false;
 				return success;
 			} else {
-				System.out.println("JOB TAKEN BY = "+cJob.getStatusProperty("trancoder"));
+				log.debug("JOB TAKEN BY = "+cJob.getStatusProperty("trancoder"));
 			}
 		} else {
-			LOG.debug("No job found");
+			log.debug("No job found");
 		}
 		busy = false;	
 		return false;
@@ -127,13 +127,13 @@ public class TranscoderWorker implements MargeObserver {
 	 * @param job
 	 */
 	public void removeJob() {
-		LOG.debug("removing job: "+cJob);
+		log.debug("removing job: "+cJob);
 		
 		// send delete call
 		ServiceInterface smithers = ServiceManager.getService("smithers");
 		if (smithers==null) return;
 		smithers.delete( cJob.getUri(), null, null);
-		LOG.debug("send delete call to "+cJob.getUri());
+		log.debug("send delete call to "+cJob.getUri());
 	}
 	
 	/**
@@ -143,7 +143,7 @@ public class TranscoderWorker implements MargeObserver {
 	 * @param success
 	 */
 	private void jobFinished(boolean success){
-		LOG.debug("call to jobFinished");
+		log.debug("call to jobFinished");
 		
 		// rawaudio uri 
 		String rawUri = cJob.getProperty("referid");
@@ -169,7 +169,7 @@ public class TranscoderWorker implements MargeObserver {
 		MountProperties mp = LazyHomer.getMountProperties(mount);
 		String jobFinished = mp.getJobFinished();
 		if (jobFinished != null && !jobFinished.equals("")) {
-			LOG.debug("About to run script "+jobFinished);
+			log.debug("About to run script "+jobFinished);
 			String batchFilesPath = WillieServer.instance().getConfiguration().getProperty("batchFilesPath");
 			String batchFilesExtension = WillieServer.instance().getConfiguration().getProperty("batchFilesExtension");
 			
@@ -177,7 +177,7 @@ public class TranscoderWorker implements MargeObserver {
 			String filePath = filename.substring(0, filename.lastIndexOf("/"));
 			
 			String[] cmdArray = new String[] {batchFilesPath+File.separator+jobFinished+batchFilesExtension, filePath};
-			LOG.debug("About to run "+batchFilesPath+File.separator+jobFinished+batchFilesExtension+" "+filePath);
+			log.debug("About to run "+batchFilesPath+File.separator+jobFinished+batchFilesExtension+" "+filePath);
 			CommandRunner.run(cmdArray);
 		}
 	}

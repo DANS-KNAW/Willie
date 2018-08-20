@@ -1,5 +1,7 @@
 package com.noterik.springfield.willie.util;
 
+import org.apache.log4j.Logger;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -9,6 +11,8 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 
 public class FsEncoding {
+	private static final Logger log = Logger.getLogger(FsEncoding.class);
+
 	public FsEncoding() {
 		//constructor
 	}
@@ -24,11 +28,11 @@ public class FsEncoding {
 			ByteBuffer bytebuf = encoder.encode(CharBuffer.wrap(charbuf));
 			input = new String(bytebuf.array(), 0, bytebuf.limit(), Charset.forName("ISO-8859-1"));
 		} catch (CharacterCodingException e) {
-			System.out.println("Error in coversion from UTF-8 to ISO-8859-1");
+			log.debug("Error in coversion from UTF-8 to ISO-8859-1");
 			try {
 				input = new String(originalInput.getBytes("ISO-8859-1"));
 			} catch (UnsupportedEncodingException ex) {
-				System.out.println("Error in second conversion from ISO-8859-1");
+				log.debug("Error in second conversion from ISO-8859-1");
 			}
 		}
 		

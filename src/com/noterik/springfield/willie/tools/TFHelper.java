@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import com.noterik.springfield.willie.homer.LazyHomer;
 import com.noterik.springfield.willie.homer.MountProperties;
 import com.noterik.springfield.willie.queue.Job;
+import org.apache.log4j.Logger;
 
 /**
  * Tools for running Transcoders.
@@ -19,6 +20,8 @@ import com.noterik.springfield.willie.queue.Job;
  *
  */
 public class TFHelper {
+	private static final Logger log = Logger.getLogger(TFHelper.class);
+
 	/**
 	 * Determines if the input file of this job is local or not.
 	 * 
@@ -32,11 +35,11 @@ public class TFHelper {
 			 MountProperties minfo = LazyHomer.getMountProperties(name);
 		   
 			 if (minfo == null) {
-				 System.out.println("Mount properties not set for Willie for mount "+name);
+				 log.debug("Mount properties not set for Willie for mount "+name);
 				 return false;
 			 }		   
 			 
-			 System.out.println("mount ip = "+minfo.getHostname()+" this willie ip "+LazyHomer.myip);		   
+			 log.debug("mount ip = "+minfo.getHostname()+" this willie ip "+LazyHomer.myip);
 			 if (minfo.getHostname().equals(LazyHomer.myip)) {
 				 return true;
 			 }
