@@ -35,7 +35,7 @@ import com.noterik.springfield.willie.tools.TFHelper;
  * @version $Id: QueueManager.java,v 1.18 2012-07-31 19:06:09 daniel Exp $
  *
  */
-public class QueueManager implements MargeObserver {
+public class QueueManager {
 	/** The QueueManager's log4j Logger */
 	public static final Logger LOG = Logger.getLogger(QueueManager.class);
 	
@@ -128,8 +128,6 @@ public class QueueManager implements MargeObserver {
 			return false;
 		}
 		
-		// replaces the on williequeuescripts
-		LazyMarge.addObserver("/domain/"+domain+"/user/*/audio/*/rawaudio/*", this);		
 		return true;
 	}
 	
@@ -247,63 +245,6 @@ public class QueueManager implements MargeObserver {
 			LOG.error("Could not parse response from smithers",e);
 		}
 		return true;
-	}
-	
-	public void remoteSignal(String from,String method,String url) {
-		int pos = url.indexOf(",");
-		if (pos!=-1) {
-			// its a complex key
-			if (!method.equals("LINK")) {
-				String key = url.substring(pos);
-				if (key.indexOf("/user/*/audio/*/rawaudio/*")!=-1) {
-					// its a rawaudio change
-					if (LazyHomer.getMyWillieProperties().getHandleTriggers()) {
-						handleRawaudioChange(url.substring(0,pos));
-					}
-				}
-			}
-		}
-	}
-	
-	private void handleRawaudioChange(String url) {
-		ServiceInterface smithers = ServiceManager.getService("smithers");
-		if (smithers==null) return;
-		String response = smithers.get(url,null,null);
-		try {
-			// parse response
-			Document doc = DocumentHelper.parseText(response);
-			Node node = doc.selectSingleNode("//properties/reencode");
-			if(node != null) {
-				String reencode = node.getText();
-				if (reencode.equals("true")) {
-					addRawaudioJob(url,doc);
-				}
-			}
-		} catch(Exception e) {
-			LOG.error("Could not parse response from smithers",e);
-		}
-	}
-	
-	private void addRawaudioJob(String url,Document doc) {
-		LOG.debug("Add Raw Job Url="+url);
-		ServiceInterface smithers = ServiceManager.getService("smithers");
-		if (smithers==null) return;
-		smithers.put(url+"/properties/reencode","false","text/xml");
-				
-		String domain = TFHelper.getDomainFromUrl(url);
-
-		String newbody = "<fsxml><properties/>";
-    	newbody+="<rawaudio id=\"1\" referid=\""+url+"\"><properties>";
-        newbody+="</properties></rawaudio></fsxml>";	
-        String response = smithers.post("/domain/"+domain+"/service/willie/queue/default/job",newbody,"text/xml");
-   		//get job id from response
-		try {
-			Document responseDoc = DocumentHelper.parseText(response);
-			String jobid = responseDoc.selectSingleNode("//properties/uri") == null ? "" : responseDoc.selectSingleNode("//properties/uri").getText();
-			smithers.put(url+"/properties/job", jobid, "text/xml");
-		} catch (DocumentException e) {
-			LOG.error("Could not create job for "+url);
-		}
 	}
 	
 	public void destroy() {
